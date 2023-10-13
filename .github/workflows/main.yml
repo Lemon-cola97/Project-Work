@@ -1,0 +1,60 @@
+import cv2
+import os
+
+ACTIONS = ["waving", "smiling", "asking"]
+
+def capture_action(action):
+    cap = cv2.VideoCapture(0)
+    fourcc = cv2.VideoWriter_fourcc(*'XVID')
+    filename = f"{action}.avi"
+    out = cv2.VideoWriter(filename, fourcc, 20.0, (640, 480))
+
+    print(f"Recording {action}. Press 'q' to stop...")
+
+    while(cap.isOpened()):
+        ret, frame = cap.read()
+        if ret:
+            out.write(frame)
+            cv2.imshow(f'Recording {action}...', frame)
+            if cv2.waitKey(1) & 0xFF == ord('q'):
+                break
+        else:
+            break
+
+    cap.release()
+    out.release()
+    cv2.destroyAllWindows()
+    return filename
+
+def compile_videos(filenames, output_filename="composite.avi"):
+    # Assuming all videos have the same size and FPS for simplicity
+    fourcc = cv2.VideoWriter_fourcc(*'XVID')
+    out = None
+
+    for filename in filenames:
+        cap = cv2.VideoCapture(filename)
+        if out is None:
+            width = int(cap.get(3))
+            height = int(cap.get(4))
+            out = cv2.VideoWriter(output_filename, fourcc, 20.0, (width, height))
+        
+        while(cap.isOpened()):
+            ret, frame = cap.read()
+            if ret:
+                out.write(frame)
+            else:
+                break
+        cap.release()
+
+    out.release()
+
+if __name__ == "__main__":
+    recordings = []
+
+    for action in ACTIONS:
+        input(f"Press Enter to start recording {action}...")
+        filename = capture_action(action)
+        recordings.append(filename)
+
+    compile_videos(recordings)
+    print("Composite video created!")
